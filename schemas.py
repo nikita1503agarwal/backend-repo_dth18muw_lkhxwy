@@ -2,47 +2,55 @@
 Database Schemas
 
 Define your MongoDB collection schemas here using Pydantic models.
-These schemas are used for data validation in your application.
-
 Each Pydantic model represents a collection in your database.
+
 Model name is converted to lowercase for the collection name:
 - User -> "user" collection
-- Product -> "product" collection
-- BlogPost -> "blogs" collection
+- Reservation -> "reservation" collection
+- Review -> "review" collection
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 from typing import Optional
+from datetime import datetime
 
-# Example schemas (replace with your own):
+# ----------------------------------------------------------------------------
+# Core business schemas for FMRENTALPRESTIGE
+# ----------------------------------------------------------------------------
 
-class User(BaseModel):
+class Reservation(BaseModel):
     """
-    Users collection schema
-    Collection name: "user" (lowercase of class name)
+    Reservation collection schema
+    Collection name: "reservation"
     """
-    name: str = Field(..., description="Full name")
-    email: str = Field(..., description="Email address")
-    address: str = Field(..., description="Address")
-    age: Optional[int] = Field(None, ge=0, le=120, description="Age in years")
-    is_active: bool = Field(True, description="Whether user is active")
+    code: str = Field(..., description="Codice prenotazione univoco")
+    nome: str = Field(..., description="Nome del conducente")
+    cognome: str = Field(..., description="Cognome del conducente")
+    email: EmailStr = Field(..., description="Email di contatto")
+    telefono: str = Field(..., description="Telefono/WhatsApp")
 
-class Product(BaseModel):
+    auto: str = Field(..., description="Modello dell'auto richiesta")
+    ritiro_data: str = Field(..., description="Data e ora di ritiro ISO (YYYY-MM-DD HH:mm)")
+    riconsegna_data: str = Field(..., description="Data e ora di riconsegna ISO")
+    ritiro_luogo: str = Field(..., description="Luogo di ritiro")
+    riconsegna_luogo: str = Field(..., description="Luogo di riconsegna")
+
+    messaggio: Optional[str] = Field(None, description="Note aggiuntive")
+    sorgente: Optional[str] = Field(None, description="Canale di provenienza (sito, instagram, tiktok)")
+
+    stato: str = Field("in_review", description="Stato prenotazione: in_review, confermata, rifiutata")
+    check_in_status: str = Field("not_checked_in", description="Stato check-in: not_checked_in, checked_in")
+    check_in_at: Optional[datetime] = Field(None, description="Timestamp del check-in")
+
+
+class Review(BaseModel):
     """
-    Products collection schema
-    Collection name: "product" (lowercase of class name)
+    Review collection schema
+    Collection name: "review"
     """
-    title: str = Field(..., description="Product title")
-    description: Optional[str] = Field(None, description="Product description")
-    price: float = Field(..., ge=0, description="Price in dollars")
-    category: str = Field(..., description="Product category")
-    in_stock: bool = Field(True, description="Whether product is in stock")
+    nome: str = Field(..., description="Nome del cliente")
+    rating: int = Field(..., ge=1, le=5, description="Valutazione 1-5")
+    commento: str = Field(..., description="Testo della recensione")
+    fonte: Optional[str] = Field(None, description="Piattaforma: Google, Instagram, TikTok")
 
-# Add your own schemas here:
-# --------------------------------------------------
-
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+# You can keep adding more schemas as needed
